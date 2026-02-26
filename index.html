@@ -143,13 +143,13 @@
             submitButton.disabled = true;
 
             const name = document.getElementById("name").value.trim();
-            const email = document.getElementById("gmail").value.trim();
+            const email = document.getElementById("email").value.trim();
             const message = document.getElementById("message").value.trim();
 
             try {
                 const { data, error } = await supabaseClient
                     .from("feedback")
-                    .insert([{ name, gmail, message }]);
+                    .insert([{ name, email, message }]);
 
                 if (error) {
                     status.innerText = ❌ Error: ${error.message};
@@ -234,3 +234,4 @@
     </script>
 </body>
 </html>
+
