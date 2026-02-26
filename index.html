@@ -127,36 +127,51 @@
 
 
 <script>
-  // 1. Initialize the Supabase client
-  const SUPABASE_URL = 'https://dqbpnlnkwcceyjquzbhn.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxYnBubG5rd2NjZXlqcXV6YmhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5OTUzNzAsImV4cCI6MjA4NzU3MTM3MH0.kUZu5eqHlMD71fVe9EBumSoN7JbVxfTUOimUvAbinNM';
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // 1. Initialize Supabase
+const supabaseUrl = 'https://dqbpnlnkwcceyjquzbhn.supabase.coL';
+const supabaseKey = 'sb_publishable_hXduYtlVs9ket-2mDocvYQ_675LC9oO';
+const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  async function setSupabaseBackground() {
-    const bucketName = 'feedback';
-    const filePath = 'folder/image.jpg'; // Path to the file inside your bucket
+const form = document.getElementById('portfolioForm');
+const btn = document.getElementById('submitBtn');
+const status = document.getElementById('status');
 
-    // 2. Get the public URL for the image
-    const { data } = supabase
-      .storage
-      .from(bucketName)
-      .getPublicUrl(filePath);
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    const imageUrl = data.publicUrl;
+    // Visual loading state
+    btn.disabled = true;
+    btn.innerText = "Sending...";
 
-    // 3. Apply the URL to the body background
-    if (imageUrl) {
-      document.body.style.backgroundImage = `url('${imageUrl}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundRepeat = 'no-repeat';
-      document.body.style.backgroundAttachment = 'fixed';
+    // 2. Collect the data
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const message = document.getElementById('message').value;
+
+    // 3. Insert into the "messages" table
+    const { data, error } = await _supabase
+        .from('feedback') // Name of your table in Supabase
+        .insert([{ name, gmail, message }]);
+
+    // 4. Handle response
+    btn.disabled = false;
+    btn.innerText = "Send Message";
+
+    if (error) {
+        console.error("Supabase Error:", error);
+        status.style.color = "#ef4444"; // Error Red
+        status.innerText = "❌ Error: Could not save message.";
+    } else {
+        status.style.color = "#4ade80"; // Success Green
+        status.innerText = "✅ Success! Message saved to Supabase.";
+        form.reset();
+        
+        // Clear status after 4 seconds
+        setTimeout(() => { status.innerText = ""; }, 4000);
     }
-  }
-
-  // Run the function when the page loads
-  window.onload = setSupabaseBackground;
+});
 </script>
 
 </body>
+
 </html>
