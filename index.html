@@ -127,51 +127,110 @@
 
 
 <script>
-  // 1. Initialize Supabase
-const supabaseUrl = 'https://dqbpnlnkwcceyjquzbhn.supabase.coL';
-const supabaseKey = 'sb_publishable_hXduYtlVs9ket-2mDocvYQ_675LC9oO';
-const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Supabase Initialization
+        const supabaseUrl = "https://dqbpnlnkwcceyjquzbhn.supabase.co";
+        const supabaseKey = "sb_publishable_hXduYtlVs9ket-2mDocvYQ_675LC9oO";
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-const form = document.getElementById('portfolioForm');
-const btn = document.getElementById('submitBtn');
-const status = document.getElementById('status');
+        // Feedback Form Handler
+        document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const status = document.getElementById("status");
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            
+            status.innerText = "Submitting...";
+            status.style.color = "#fff";
+            submitButton.disabled = true;
 
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("gmail").value.trim();
+            const message = document.getElementById("message").value.trim();
 
-    // Visual loading state
-    btn.disabled = true;
-    btn.innerText = "Sending...";
+            try {
+                const { data, error } = await supabaseClient
+                    .from("feedback")
+                    .insert([{ name, gmail, message }]);
 
-    // 2. Collect the data
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
+                if (error) {
+                    status.innerText = ❌ Error: ${error.message};
+                    status.style.color = "#ff4444";
+                } else {
+                    status.innerText = "✅ Feedback submitted successfully!";
+                    status.style.color = "#00ffd5";
+                    e.target.reset();
+                    setTimeout(() => { status.innerText = ""; }, 5000);
+                }
+            } catch (err) {
+                status.innerText = "❌ Connection error. Please try again.";
+                status.style.color = "#ff4444";
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
 
-    // 3. Insert into the "messages" table
-    const { data, error } = await _supabase
-        .from('feedback') // Name of your table in Supabase
-        .insert([{ name, gmail, message }]);
+        // 3D Background Logic
+        const init3D = () => {
+            const canvas = document.querySelector('#hero-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // 4. Handle response
-    btn.disabled = false;
-    btn.innerText = "Send Message";
+            const particlesGeometry = new THREE.BufferGeometry();
+            const count = 3500;
+            const positions = new Float32Array(count * 3);
+            for(let i = 0; i < count * 3; i++) { positions[i] = (Math.random() - 0.5) * 12; }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const particlesMaterial = new THREE.PointsMaterial({ size: 0.012, color: 0x6366f1, transparent: true, opacity: 0.7 });
+            const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+            camera.position.z = 4;
 
-    if (error) {
-        console.error("Supabase Error:", error);
-        status.style.color = "#ef4444"; // Error Red
-        status.innerText = "❌ Error: Could not save message.";
-    } else {
-        status.style.color = "#4ade80"; // Success Green
-        status.innerText = "✅ Success! Message saved to Supabase.";
-        form.reset();
-        
-        // Clear status after 4 seconds
-        setTimeout(() => { status.innerText = ""; }, 4000);
-    }
-});
-</script>
+            let mouseX = 0, mouseY = 0;
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth) - 0.5;
+                mouseY = (e.clientY / window.innerHeight) - 0.5;
+            });
 
+            const animate = () => {
+                requestAnimationFrame(animate);
+                particles.rotation.y += 0.001;
+                particles.position.x += (mouseX * 0.4 - particles.position.x) * 0.05;
+                particles.position.y += (-mouseY * 0.4 - particles.position.y) * 0.05;
+                renderer.render(scene, camera);
+            };
+            animate();
+        };
+
+        // Scroll and UI Logic
+        const initLogic = () => {
+            gsap.registerPlugin(ScrollTrigger);
+            gsap.utils.toArray('.reveal').forEach(elem => {
+                gsap.fromTo(elem, { opacity: 0, y: 30 }, { 
+                    opacity: 1, y: 0, duration: 1, ease: "power2.out",
+                    scrollTrigger: { trigger: elem, start: "top 85%" }
+                });
+            });
+
+            gsap.utils.toArray('.progress').forEach(bar => {
+                gsap.to(bar, {
+                    width: bar.dataset.width, duration: 1.5, ease: "expo.out",
+                    scrollTrigger: { trigger: bar, start: "top 90%" }
+                });
+            });
+
+            const cursor = document.querySelector('.cursor');
+            document.addEventListener('mousemove', (e) => {
+                gsap.to(cursor, { x: e.clientX - 10, y: e.clientY - 10, duration: 0.1 });
+            });
+        };
+
+        window.onload = () => {
+            init3D();
+            initLogic();
+        };
+    </script>
 </body>
-
 </html>
